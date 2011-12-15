@@ -7,18 +7,35 @@
 //
 
 #import "RootViewController.h"
+#import "voxeAppDelegate.h"
+#import "ThemeCell.h"
 
 @implementation RootViewController
 
+@synthesize selectedCandidatesItem;
+
+- (void) awakeFromNib{
+    cellLoader = [[UINib nibWithNibName:@"ThemeCell" bundle:[NSBundle mainBundle]] retain];
+}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    compareViewController = [[CompareViewController alloc] initWithRootViewController:self];
+    candidatesViewController = [[CandidatesViewController alloc] initWithRootViewController:self];
+    
+    
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Thèmes" style:UIBarButtonItemStyleBordered target:nil action:nil];
+    [[self navigationItem] setBackBarButtonItem: backButton];
+    [backButton release];
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    [[self navigationController] setToolbarHidden:NO animated:animated];
+    
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -45,6 +62,37 @@
  */
 
 // Customize the number of sections in the table view.
+
+
+
+- (void) loadComparisonWebPage{
+    
+    
+    NSDictionary *currentCandidate;
+    NSMutableArray *ids = [[NSMutableArray alloc] init];
+    NSEnumerator *objEnum = [[candidatesViewController selectedCandidates] objectEnumerator];
+    while(currentCandidate = [objEnum nextObject]){
+        [ids addObject:[currentCandidate valueForKey:@"id"]];        
+    }
+    NSString *idsList = [ids componentsJoinedByString:@","];
+    
+    NSString *compareUrl = [NSString stringWithFormat:@"http://voxe.org/webviews/compare?electionId=%@&candidateIds=%@&themeId=%@", @"4ed1cb0203ad190006000001", idsList, [currentTheme valueForKey:@"id"]];
+    
+    
+    [compareViewController setTitle:[currentTheme valueForKey:@"name"]];
+    [compareViewController loadComparisonPage:compareUrl];
+    
+}
+
+- (void) candidateModalViewDidDismiss{
+    
+    if([[self navigationController] visibleViewController] == compareViewController){
+        
+        [self loadComparisonWebPage];
+    }
+}
+
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
@@ -52,74 +100,72 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 0;
+    return [[(voxeAppDelegate*)[[UIApplication sharedApplication] delegate] electionThemes] count];
 }
 
 // Customize the appearance of table view cells.
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
+    NSArray *electionThemes = [(voxeAppDelegate*)[[UIApplication sharedApplication] delegate] electionThemes];
+    NSDictionary *electionTheme = [electionThemes objectAtIndex:[indexPath row]];
     
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
+    
+    
+    NSString *CellIdentifier = [NSString stringWithFormat:@"theme_%d", [electionTheme valueForKey:@"id"]];
+    
+    ThemeCell *cell = (ThemeCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil){
+        
+        NSArray *topLevelItems = [cellLoader instantiateWithOwner:self options:nil];
+        cell = [topLevelItems objectAtIndex:0];
+        [cell setCustomIdentifier:CellIdentifier];
+        [cell setAssociatedTheme:electionTheme];
     }
-
+    
     // Configure the cell.
     return cell;
+    
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete)
-    {
-        // Delete the row from the data source.
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }
-    else if (editingStyle == UITableViewCellEditingStyleInsert)
-    {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    /*
-    <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-    // ...
-    // Pass the selected object to the new view controller.
-    [self.navigationController pushViewController:detailViewController animated:YES];
-    [detailViewController release];
-	*/
+    
+    
+    
+    //URL example : http://voxe.org/webviews/compare?electionId=4ed1cb0203ad190006000001&candidateIds=4ed1cb0203ad190006000132,4ed1cb0203ad190006000133&themeId=4ed1cb0203ad190006000016
+    
+    
+    
+    
+
+    NSArray *electionThemes = [(voxeAppDelegate*)[[UIApplication sharedApplication] delegate] electionThemes];
+    NSDictionary *electionTheme = [electionThemes objectAtIndex:[indexPath row]];
+    
+    currentTheme = electionTheme;
+    
+    
+    
+    
+                            
+    [[self navigationController] pushViewController:compareViewController animated:YES];
+
+    [self loadComparisonWebPage];
+    
 }
+
+#pragma mark - Buttons
+
+- (void) showCandidatesPopup{
+    //[[self navigationController] setModalPresentationStyle:UIModalPresentationPageSheet];
+    [[self navigationController] presentModalViewController:candidatesViewController animated:YES];
+    
+}
+
+- (IBAction)changeCandidates:(id)sender{
+    [self showCandidatesPopup];
+}
+
 
 - (void)didReceiveMemoryWarning
 {
