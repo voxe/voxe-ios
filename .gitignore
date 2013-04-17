@@ -1,6 +1,7 @@
 .repl_history
 build
 tags
+vendor/
 
 # common annoyance editors
 .DS_Store
@@ -10,3 +11,5 @@ nbproject
 *.swo
 ~
 .eprj
+
+!.gitkeep
