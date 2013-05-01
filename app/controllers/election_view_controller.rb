@@ -1,6 +1,6 @@
 class ElectionViewController < UINavigationController
   attr_accessor :election
-  attr_reader :deckViewController
+  attr_reader :deckViewController, :candidacies
 
   ELECTION_ID = '4f16fe2299c7a10001000012'
 
@@ -25,6 +25,9 @@ class ElectionViewController < UINavigationController
     super(election)
     @candidaciesViewController.election = election
     @candidaciesViewController.reloadData
+    @tagsViewController.election = election
+    @tagsViewController.reloadData
+
     @deckViewController.toggleLeftViewAnimated true
   end
 
@@ -37,9 +40,9 @@ class ElectionViewController < UINavigationController
   end
 
   # Delegate methods
-  
+
   def candidaciesViewController(candidaciesViewController, didSelectCandidates:selectedCandidacies)
-    @tagsViewController.candidacies = selectedCandidacies
+    @candidacies = selectedCandidacies
     @deckViewController.toggleRightViewAnimated true
   end
 end

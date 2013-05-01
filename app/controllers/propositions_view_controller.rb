@@ -12,6 +12,6 @@ class PropositionsViewController < UIViewController
 
     request = NSURLRequest.requestWithURL url
 
-    @webView.loadRequest request
+    #@webView.loadRequest request
   end
 end
