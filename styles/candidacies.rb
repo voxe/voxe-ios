@@ -3,7 +3,7 @@ Teacup::Stylesheet.new :candidacies do
 
   style :table,
     constraints: [
-      :full_width,
-      :full_height
+      :topleft, :full_height,
+      constrain(:width).equals(:superview, :width).minus(44),
     ]
 end

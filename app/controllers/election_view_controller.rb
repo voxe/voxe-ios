@@ -8,6 +8,7 @@ class ElectionViewController < UINavigationController
     load_election(ELECTION_ID)
 
     @candidaciesViewController = CandidaciesViewController.alloc.init
+    @candidaciesViewController.delegate = self
     @propositionsViewController = PropositionsViewController.alloc.init
     @tagsViewController = TagsViewController.alloc.init
 
@@ -23,6 +24,8 @@ class ElectionViewController < UINavigationController
   def election=(election)
     super(election)
     @candidaciesViewController.election = election
+    @candidaciesViewController.reloadData
+    @deckViewController.toggleLeftViewAnimated true
   end
 
   def load_election(election_id)
@@ -31,5 +34,12 @@ class ElectionViewController < UINavigationController
         self.election = Election.new(BW::JSON.parse(response.body.to_str)['response']['election'])
       end
     end
+  end
+
+  # Delegate methods
+  
+  def candidaciesViewController(candidaciesViewController, didSelectCandidates:selectedCandidacies)
+    @tagsViewController.candidacies = selectedCandidacies
+    @deckViewController.toggleRightViewAnimated true
   end
 end
