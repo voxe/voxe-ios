@@ -1,9 +1,10 @@
 Teacup::Stylesheet.new :candidacies do
-  style :root
+  style :root,
+    backgroundColor: 'white'.to_color
 
   style :table,
     constraints: [
-      :full_width,
-      :full_height
+      :topleft, :full_height,
+      constrain(:width).equals(:superview, :width).minus(44),
     ]
 end

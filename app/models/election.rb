@@ -1,5 +1,5 @@
 class Election
-  PROPERTIES = [:id, :name, :candidacies]
+  PROPERTIES = [:id, :name, :candidacies, :tags]
   PROPERTIES.each { |prop|
     attr_accessor prop
   }
@@ -14,5 +14,9 @@ class Election
 
   def candidacies=(candidacies_attrs)
     @candidacies = candidacies_attrs.map { |attributes| Candidacy.new(attributes) }
+  end
+
+  def tags=(tags_attrs)
+    @tags = tags_attrs.map { |attributes| Tags.new(attributes) }
   end
 end
