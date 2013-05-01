@@ -1,5 +1,11 @@
 class CandidaciesViewController < UIViewController
-  attr_accessor :viewController, :election
+  attr_accessor :viewController, :election, :selectedCandidacies, :delegate
+
+  def selectedCandidacies
+    @selectedCandidacies ||= []
+  end
+
+  # UIViewController lifecycle
 
   stylesheet :candidacies
 
@@ -14,6 +20,8 @@ class CandidaciesViewController < UIViewController
     @table.delegate = self
   end
 
+  # UITableView methods
+
   def tableView(tableView, cellForRowAtIndexPath: indexPath)
     @reuseIdentifier ||= "CELL_IDENTIFIER"
 
@@ -21,26 +29,43 @@ class CandidaciesViewController < UIViewController
       UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
     end
 
-    cell.textLabel.text = data[indexPath.row].name
+    cell.textLabel.text = @election.candidacies[indexPath.row].name
+
+    if selectedCandidacies.include? @election.candidacies[indexPath.row]
+      cell.accessoryType = UITableViewCellAccessoryCheckmark
+    else
+      cell.accessoryType = UITableViewCellAccessoryNone
+    end
 
     cell
   end
 
+  def numberOfSectionsInTableView(tableView)
+    1
+  end
+
   def tableView(tableView, numberOfRowsInSection: section)
-    return 0 unless @data
-    @data.length
+    return 0 unless @election
+    @election.candidacies.length
   end
 
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
 
-    candidacy = @data[indexPath.row]
+    candidacy = @election.candidacies[indexPath.row]
     if @selectedCandidacies.include? candidacy
       @selectedCandidacies.delete candidacy
     else
       @selectedCandidacies << candidacy
     end
-
+    @table.reloadData
     p "  #{@selectedCandidacies.length} selected candidacies"
+    if @selectedCandidacies.length == 2
+      delegate.candidaciesViewController(self, didSelectCandidates:@selectedCandidacies)
+    end
+  end
+
+  def reloadData
+    @table.reloadData
   end
 end
