@@ -1,5 +1,5 @@
 class ElectionViewController < UINavigationController
-  attr_accessor :election
+  attr_accessor :election, :selectedTag, :selectedCandidacies
   attr_reader :deckViewController
 
   ELECTION_ID = '4f16fe2299c7a10001000012'
@@ -22,6 +22,16 @@ class ElectionViewController < UINavigationController
     return self
   end
 
+  def selectedTag=(selectedTag)
+    super
+    @propositionsViewController.selectedTag = selectedTag
+  end
+
+  def selectedCandidacies=(selectedCandidacies)
+    super
+    @propositionsViewController.selectedCandidacies = selectedCandidacies
+  end
+
   def election=(election)
     super(election)
     @candidaciesViewController.election = election
@@ -42,17 +52,19 @@ class ElectionViewController < UINavigationController
 
   # Delegate methods
 
-  def candidaciesViewController(candidaciesViewController, didSelectCandidates:selectedCandidacies)
-    @selectedCandidacies = selectedCandidacies
-    @deckViewController.toggleRightViewAnimated true
+  def candidaciesViewController(candidaciesViewController, didSelectCandidates:candidacies)
+    self.selectedCandidacies = candidacies
+    if @selectedTag == nil && candidacies.length == 2
+      @deckViewController.toggleRightViewAnimated true
+    elsif @selectedTag != nil && candidacies.length > 1
+      @propositionsViewController.refreshWebView
+    end
   end
 
-  def tagsViewController(tagsViewController, didSelectTag:selectedTag)
-    @selectedTag = selectedTag
-    if @selectedCandidacies.length == 2
-      @propositionsViewController.loadWebViewWithSelectedTag(selectedTag, andSelectedCandidacies:@selectedCandidacies)
-      @deckViewController.closeRightView
-    end
+  def tagsViewController(tagsViewController, didSelectTag:tag)
+    self.selectedTag = tag
+    @propositionsViewController.refreshWebView
+    @deckViewController.closeRightView
   end
 
 end
