@@ -1,5 +1,6 @@
 Teacup::Stylesheet.new :candidacies do
-  style :root
+  style :root,
+    backgroundColor: 'white'.to_color
 
   style :table,
     constraints: [
