@@ -59,10 +59,7 @@ class CandidaciesViewController < UIViewController
       @selectedCandidacies << candidacy
     end
     @table.reloadData
-
-    if @selectedCandidacies.length == 2
-      delegate.candidaciesViewController(self, didSelectCandidates:@selectedCandidacies)
-    end
+    delegate.candidaciesViewController(self, didSelectCandidates:@selectedCandidacies)
   end
 
   def reloadData
