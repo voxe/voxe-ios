@@ -1,6 +1,6 @@
 class ElectionViewController < UINavigationController
   attr_accessor :election
-  attr_reader :deckViewController, :candidacies
+  attr_reader :deckViewController
 
   ELECTION_ID = '4f16fe2299c7a10001000012'
 
@@ -11,6 +11,7 @@ class ElectionViewController < UINavigationController
     @candidaciesViewController.delegate = self
     @propositionsViewController = PropositionsViewController.alloc.init
     @tagsViewController = TagsViewController.alloc.init
+    @tagsViewController.delegate = self
 
     @deckViewController = IIViewDeckController.alloc.initWithCenterViewController(
       @propositionsViewController,
@@ -42,7 +43,16 @@ class ElectionViewController < UINavigationController
   # Delegate methods
 
   def candidaciesViewController(candidaciesViewController, didSelectCandidates:selectedCandidacies)
-    @candidacies = selectedCandidacies
+    @selectedCandidacies = selectedCandidacies
     @deckViewController.toggleRightViewAnimated true
   end
+
+  def tagsViewController(tagsViewController, didSelectTag:selectedTag)
+    @selectedTag = selectedTag
+    if @selectedCandidacies.length == 2
+      @propositionsViewController.loadWebViewWithSelectedTag(selectedTag, andSelectedCandidacies:@selectedCandidacies)
+      @deckViewController.closeRightView
+    end
+  end
+
 end

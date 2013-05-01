@@ -1,10 +1,6 @@
 class TagsViewController < UIViewController
   attr_accessor :election, :delegate
 
-  def selectedTags
-    @selectedTags ||= []
-  end
-
   # UIViewController lifecycle
 
   stylesheet :tags
@@ -20,7 +16,7 @@ class TagsViewController < UIViewController
     @table.delegate = self
   end
 
-    # UITableView methods
+  # UITableView methods
 
   def tableView(tableView, cellForRowAtIndexPath: indexPath)
     @reuseIdentifier ||= "CELL_IDENTIFIER"
@@ -30,12 +26,6 @@ class TagsViewController < UIViewController
     end
 
     cell.textLabel.text = @election.tags[indexPath.row].name
-
-    if selectedTags.include? @election.tags[indexPath.row]
-      cell.accessoryType = UITableViewCellAccessoryCheckmark
-    else
-      cell.accessoryType = UITableViewCellAccessoryNone
-    end
 
     cell
   end
@@ -51,14 +41,8 @@ class TagsViewController < UIViewController
 
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
-
-    tag = @election.tags[indexPath.row]
-    if @selectedTags.include? tag 
-      @selectedTags.delete tag 
-    else
-      @selectedTags << tag 
-    end
-    @table.reloadData
+    selectedTag = @election.tags[indexPath.row]
+    delegate.tagsViewController(self, didSelectTag:selectedTag)
   end
 
   def reloadData
