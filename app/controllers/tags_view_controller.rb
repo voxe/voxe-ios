@@ -26,7 +26,6 @@ class TagsViewController < UIViewController
     end
 
     cell.textLabel.text = @election.tags[indexPath.row].name
-
     cell
   end
 

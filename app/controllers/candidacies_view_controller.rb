@@ -5,6 +5,10 @@ class CandidaciesViewController < UIViewController
     @selectedCandidacies ||= []
   end
 
+  def placeholderPhoto
+    @placeholderPhoto ||= UIImage.alloc.initWithContentsOfFile("placeholder_photo.png")
+  end
+
   # UIViewController lifecycle
 
   stylesheet :candidacies
@@ -29,8 +33,20 @@ class CandidaciesViewController < UIViewController
       UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
     end
 
+    # Set the image
+    photoRequest = NSURLRequest.requestWithURL(NSURL.URLWithString(@election.candidacies[indexPath.row].mediumPhotoURL))
+    cell.imageView.setImageWithURLRequest(photoRequest,
+      placeholderImage:placeholderPhoto,
+      success:lambda do |request, response, image|
+       cell.imageView.image = image
+       cell.setNeedsLayout
+     end,
+     failure:nil)
+
+    # Set the text
     cell.textLabel.text = @election.candidacies[indexPath.row].name
 
+    # Add checkmark if needed
     if selectedCandidacies.include? @election.candidacies[indexPath.row]
       cell.accessoryType = UITableViewCellAccessoryCheckmark
     else
@@ -40,10 +56,6 @@ class CandidaciesViewController < UIViewController
     cell
   end
 
-  def numberOfSectionsInTableView(tableView)
-    1
-  end
-
   def tableView(tableView, numberOfRowsInSection: section)
     return 0 unless @election
     @election.candidacies.length
@@ -51,17 +63,20 @@ class CandidaciesViewController < UIViewController
 
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
-
+    # Add or remove the candidacy from the selectedCandidacies array 
     candidacy = @election.candidacies[indexPath.row]
     if @selectedCandidacies.include? candidacy
       @selectedCandidacies.delete candidacy
     else
       @selectedCandidacies << candidacy
     end
-    @table.reloadData
+    # Reload the row to make the checkmark appear of disappear
+    @table.reloadRowsAtIndexPaths([*indexPath], withRowAnimation:UITableViewRowAnimationNone)
+    # Send the selected candidacies to the ElectionViewController
     delegate.candidaciesViewController(self, didSelectCandidates:@selectedCandidacies)
   end
 
+  # This function is called by the ElectionViewController upon reception of the data
   def reloadData
     @table.reloadData
   end
