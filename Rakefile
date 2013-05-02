@@ -11,6 +11,7 @@ Motion::Project::App.setup do |app|
   app.device_family = [:iphone, :ipad]
   app.pods do
     pod 'ViewDeck'
+    pod 'MBProgressHUD', '~> 0.6'
   end
   app.icons = ['AppIcon.png', 'AppIcon@2x.png']
   app.prerendered_icon = true
