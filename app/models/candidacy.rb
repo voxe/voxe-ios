@@ -1,7 +1,8 @@
 class Candidacy
-  attr_accessor :name, :namespace
+  attr_accessor :id, :name, :namespace
 
   def initialize(hsh = {})
+    @id = hsh['id']
     @namespace = hsh['namespace']
     candidate = hsh['candidates'][0]
     @name = "#{candidate['firstName']} #{candidate['lastName']}"

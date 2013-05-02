@@ -1,5 +1,5 @@
 class ElectionViewController < UINavigationController
-  attr_accessor :election
+  attr_accessor :election, :selectedTag, :selectedCandidacies
   attr_reader :deckViewController
 
   ELECTION_ID = '4f16fe2299c7a10001000012'
@@ -8,8 +8,10 @@ class ElectionViewController < UINavigationController
     load_election(ELECTION_ID)
 
     @candidaciesViewController = CandidaciesViewController.alloc.init
+    @candidaciesViewController.delegate = self
     @propositionsViewController = PropositionsViewController.alloc.init
     @tagsViewController = TagsViewController.alloc.init
+    @tagsViewController.delegate = self
 
     @deckViewController = IIViewDeckController.alloc.initWithCenterViewController(
       @propositionsViewController,
@@ -20,9 +22,24 @@ class ElectionViewController < UINavigationController
     return self
   end
 
+  def selectedTag=(selectedTag)
+    super
+    @propositionsViewController.selectedTag = selectedTag
+  end
+
+  def selectedCandidacies=(selectedCandidacies)
+    super
+    @propositionsViewController.selectedCandidacies = selectedCandidacies
+  end
+
   def election=(election)
     super(election)
     @candidaciesViewController.election = election
+    @candidaciesViewController.reloadData
+    @tagsViewController.election = election
+    @tagsViewController.reloadData
+
+    @deckViewController.toggleLeftViewAnimated true
   end
 
   def load_election(election_id)
@@ -32,4 +49,22 @@ class ElectionViewController < UINavigationController
       end
     end
   end
+
+  # Delegate methods
+
+  def candidaciesViewController(candidaciesViewController, didSelectCandidates:candidacies)
+    self.selectedCandidacies = candidacies
+    if @selectedTag == nil && candidacies.length == 2
+      @deckViewController.toggleRightViewAnimated true
+    elsif @selectedTag != nil && candidacies.length > 1
+      @propositionsViewController.refreshWebView
+    end
+  end
+
+  def tagsViewController(tagsViewController, didSelectTag:tag)
+    self.selectedTag = tag
+    @propositionsViewController.refreshWebView
+    @deckViewController.closeRightView
+  end
+
 end
