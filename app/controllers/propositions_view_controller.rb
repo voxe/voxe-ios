@@ -1,20 +1,20 @@
 class PropositionsViewController < UIViewController
-    attr_accessor :selectedTag, :selectedCandidacies
+  attr_accessor :selectedTag, :selectedCandidacies
   BASEURL_WEBVIEW = 'http://voxe.org/webviews/comparisons?electionId=4ef479f8bc60fb0004000001&tagId='
 
-  stylesheet :propositions
-
-  layout :root do
-    @webView = subview(UIWebView, :label)
-  end
-
   def viewDidLoad
-    super
+    view.backgroundColor = '#E7ECEE'.to_color
+    @webView = layout(UIWebView, :webView)
     @webView.delegate = self
+    self.view = @webView
   end
 
   def webViewDidFinishLoad(webView)
-    p "finish load"
+    MBProgressHUD.hideHUDForView(self.view, animated:true)
+  end
+
+  def webView(webView, didFailLoadWithError:error)
+    webViewDidFinishLoad(webView)
   end
 
   def refreshWebView
@@ -29,5 +29,6 @@ class PropositionsViewController < UIViewController
     url = NSURL.URLWithString urlString
     request = NSURLRequest.requestWithURL url
     @webView.loadRequest request
+    MBProgressHUD.showHUDAddedTo(self.view, animated:true)
   end
 end
