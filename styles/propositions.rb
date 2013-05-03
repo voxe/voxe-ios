@@ -2,7 +2,7 @@ Teacup::Stylesheet.new :propositions do
   style :root,
     backgroundColor: '#E7ECEE'.to_color
 
-  style :label,
+  style :webView,
     constraints: [
       :full_width,
       :full_height,
