@@ -6,7 +6,7 @@ class CandidaciesViewController < UIViewController
   end
 
   def placeholderPhoto
-    @placeholderPhoto ||= UIImage.alloc.initWithContentsOfFile("placeholder_photo.png")
+    @placeholderPhoto ||= UIImage.imageNamed("photo_placeholder.png")
   end
 
   # UIViewController lifecycle

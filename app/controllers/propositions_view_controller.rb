@@ -24,11 +24,10 @@ class PropositionsViewController < UIViewController
       string2 << candidacy.id
       string2 << "," unless index+1 == @selectedCandidacies.length 
     end
-    urlString = string1 + string2
-    p "#{urlString}"
-    url = NSURL.URLWithString urlString
+    url = NSURL.URLWithString string1 + string2
     request = NSURLRequest.requestWithURL url
     @webView.loadRequest request
-    MBProgressHUD.showHUDAddedTo(self.view, animated:true)
+    hud = MBProgressHUD.showHUDAddedTo(self.view, animated:true)
+    hud.labelText = "Récupération des données"
   end
 end
