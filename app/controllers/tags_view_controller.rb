@@ -25,7 +25,19 @@ class TagsViewController < UIViewController
       UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
     end
 
+    # Set the image
+    iconRequest = NSURLRequest.requestWithURL(NSURL.URLWithString(@election.tags[indexPath.row].iconURL))
+    cell.imageView.setImageWithURLRequest(iconRequest,
+      placeholderImage:nil,
+      success:lambda do |request, response, image|
+       cell.imageView.image = image
+       cell.setNeedsLayout
+     end,
+     failure:nil)
+
+    # Set the text
     cell.textLabel.text = @election.tags[indexPath.row].name
+
     cell
   end
 
