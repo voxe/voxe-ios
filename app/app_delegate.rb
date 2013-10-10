@@ -4,6 +4,7 @@ class AppDelegate
 
     @electionViewController = ElectionViewController.alloc.init
     @window.rootViewController = @electionViewController.deckViewController
+    application.setStatusBarStyle(UIStatusBarStyleBlackOpaque)
 
     @window.makeKeyAndVisible
     true
