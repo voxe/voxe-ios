@@ -7,17 +7,23 @@ class ElectionViewController < UINavigationController
   def init
     load_election(ELECTION_ID)
 
+    # Candidacies view controller (left view)
     @candidaciesViewController = CandidaciesViewController.alloc.init
     @candidaciesViewController.delegate = self
+
+    # Propositions view controller (middle view with navigation controller)
     @propositionsViewController = PropositionsViewController.alloc.init
+    @propositionsNavigationController = UINavigationController.alloc.initWithRootViewController(@propositionsViewController)
+
+    # Tags View Controller (right view)
     @tagsViewController = TagsViewController.alloc.init
     @tagsViewController.delegate = self
 
     @deckViewController = IIViewDeckController.alloc.initWithCenterViewController(
-      @propositionsViewController,
+      @propositionsNavigationController,
       leftViewController: @candidaciesViewController,
       rightViewController: @tagsViewController
-    )
+      )
 
     return self
   end
@@ -30,6 +36,10 @@ class ElectionViewController < UINavigationController
   def selectedCandidacies=(selectedCandidacies)
     super
     @propositionsViewController.selectedCandidacies = selectedCandidacies
+  end
+
+  def selectedCandidacies
+    @selectedCandidacies ||= []
   end
 
   def election=(election)
@@ -63,8 +73,11 @@ class ElectionViewController < UINavigationController
 
   def tagsViewController(tagsViewController, didSelectTag:tag)
     self.selectedTag = tag
-    @propositionsViewController.refreshWebView
+    @propositionsViewController.refreshWebView unless self.selectedCandidacies.length < 2
     @deckViewController.closeRightView
+    if self.selectedCandidacies.length < 2
+      @deckViewController.toggleLeftViewAnimated true
+    end
   end
 
 end
