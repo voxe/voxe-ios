@@ -22,7 +22,7 @@ class TagsViewController < UIViewController
     @reuseIdentifier ||= "CELL_IDENTIFIER"
 
     cell = tableView.dequeueReusableCellWithIdentifier(@reuseIdentifier) || begin
-      UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
+      TagsTableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
     end
 
     # Set the image
@@ -33,9 +33,12 @@ class TagsViewController < UIViewController
        cell.imageView.image = image
        cell.setNeedsLayout
      end,
-     failure:nil)
+      failure:nil)
 
     # Set the text
+    cell.textLabel.lineBreakMode = UILineBreakModeWordWrap
+    cell.textLabel.numberOfLines = 0
+    cell.textLabel.font = UIFont.fontWithName("Helvetica-Bold", size:17)
     cell.textLabel.text = @election.tags[indexPath.row].name
 
     cell
@@ -55,6 +58,16 @@ class TagsViewController < UIViewController
     selectedTag = @election.tags[indexPath.row]
     delegate.tagsViewController(self, didSelectTag:selectedTag)
   end
+
+def tableView(tableView, heightForRowAtIndexPath:indexPath)
+    cellText = @election.tags[indexPath.row].name
+    cellFont = UIFont.fontWithName("Helvetica-Bold", size:17)
+    labelSize = cellText.sizeWithFont(cellFont,
+      constrainedToSize:[280-20,500],
+      lineBreakMode:UILineBreakModeWordWrap)
+
+  labelSize.height + 25
+end
 
   def reloadData
     @table.reloadData
