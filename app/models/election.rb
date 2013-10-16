@@ -1,5 +1,5 @@
 class Election
-  PROPERTIES = [:id, :name, :candidacies, :tags]
+  PROPERTIES = [:id, :name, :candidacies, :tags, :published, :country]
   PROPERTIES.each { |prop|
     attr_accessor prop
   }

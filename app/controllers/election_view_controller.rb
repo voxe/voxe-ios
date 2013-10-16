@@ -10,19 +10,22 @@ class ElectionViewController < UINavigationController
     # Candidacies view controller (left view)
     @candidaciesViewController = CandidaciesViewController.alloc.init
     @candidaciesViewController.delegate = self
+    @candidaciesNavigationController = UINavigationController.alloc.initWithRootViewController(@candidaciesViewController)
 
     # Propositions view controller (middle view with navigation controller)
     @propositionsViewController = PropositionsViewController.alloc.init
+    @propositionsViewController.delegate = self
     @propositionsNavigationController = UINavigationController.alloc.initWithRootViewController(@propositionsViewController)
 
     # Tags View Controller (right view)
     @tagsViewController = TagsViewController.alloc.init
     @tagsViewController.delegate = self
+    @tagsNavigationController = UINavigationController.alloc.initWithRootViewController(@tagsViewController)
 
     @deckViewController = IIViewDeckController.alloc.initWithCenterViewController(
       @propositionsNavigationController,
-      leftViewController: @candidaciesViewController,
-      rightViewController: @tagsViewController
+      leftViewController: @candidaciesNavigationController,
+      rightViewController: @tagsNavigationController
       )
 
     return self
@@ -64,11 +67,20 @@ class ElectionViewController < UINavigationController
 
   def candidaciesViewController(candidaciesViewController, didSelectCandidates:candidacies)
     self.selectedCandidacies = candidacies
-    if @selectedTag == nil && candidacies.length == 2
-      @deckViewController.toggleRightViewAnimated true
-    elsif @selectedTag != nil && candidacies.length > 1
-      @propositionsViewController.refreshWebView
+    if candidacies.length == 2
+      if @selectedTag == nil
+        @deckViewController.toggleRightViewAnimated true
+      else
+        @propositionsViewController.refreshWebView
+        @deckViewController.closeLeftView
+      end
     end
+  end
+
+  def propositionsViewController(propositionsViewController, didSelectElection:election)
+    self.election = election
+    self.selectedCandidacies = nil
+    self.selectedTag = nil
   end
 
   def tagsViewController(tagsViewController, didSelectTag:tag)
