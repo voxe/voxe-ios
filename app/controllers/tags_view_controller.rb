@@ -14,6 +14,7 @@ class TagsViewController < UIViewController
 
     @table.dataSource = self
     @table.delegate = self
+    self.title = 'Thèmes'
   end
 
   # UITableView methods
@@ -38,7 +39,7 @@ class TagsViewController < UIViewController
     # Set the text
     cell.textLabel.lineBreakMode = UILineBreakModeWordWrap
     cell.textLabel.numberOfLines = 0
-    cell.textLabel.font = UIFont.fontWithName("Helvetica-Bold", size:17)
+    cell.textLabel.font = UIFont.fontWithName("Helvetica", size:17)
     cell.textLabel.text = @election.tags[indexPath.row].name
 
     cell
@@ -61,7 +62,7 @@ class TagsViewController < UIViewController
 
 def tableView(tableView, heightForRowAtIndexPath:indexPath)
     cellText = @election.tags[indexPath.row].name
-    cellFont = UIFont.fontWithName("Helvetica-Bold", size:17)
+    cellFont = UIFont.fontWithName("Helvetica", size:17)
     labelSize = cellText.sizeWithFont(cellFont,
       constrainedToSize:[280-20,500],
       lineBreakMode:UILineBreakModeWordWrap)
