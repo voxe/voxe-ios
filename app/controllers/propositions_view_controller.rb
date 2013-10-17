@@ -17,17 +17,16 @@ class PropositionsViewController < UIViewController
     @webView.delegate = self
 
     # Set button on navigation bar
-    
+
     @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
     @logoButton.frame = [[0,0],[32,32]]
     @logoButton.setImage(UIImage.imageNamed("voxelogo.png"), forState:UIControlStateNormal)
     @logoButton.addTarget(self, action:'logoButtonPressed', forControlEvents:UIControlEventTouchUpInside)
     navigationItem.titleView = @logoButton
 
-    # Set back button
-    backItem = UIBarButtonItem.alloc.initWithBarButtonSystemItem(101, target:@webView, action:'goBack')
-    backItem.style = UIBarButtonItemStyleBordered
-    navigationItem.setLeftBarButtonItem(backItem, animated:false)
+    # Create back button
+    @backItem = UIBarButtonItem.alloc.initWithBarButtonSystemItem(101, target:@webView, action:'goBack')
+    @backItem.style = UIBarButtonItemStyleBordered
   end
 
   # Interface buttons
@@ -91,6 +90,11 @@ class PropositionsViewController < UIViewController
 
   def webViewDidFinishLoad(webView)
     MBProgressHUD.hideHUDForView(self.view, animated:true)
+    if @resetBackButton
+      @resetBackButton = false
+    else
+      navigationItem.setLeftBarButtonItem(@backItem, animated:true)
+    end
   end
 
   def webView(webView, didFailLoadWithError:error)
@@ -98,6 +102,11 @@ class PropositionsViewController < UIViewController
   end
 
   def refreshWebView
+    # reset the back button
+    navigationItem.setLeftBarButtonItem(nil, animated:true)
+    @resetBackButton = true
+
+    # create and load request
     string1 = "#{BASEURL_WEBVIEW}#{@selectedTag.id}&candidacyIds="
     string2 = ""
     @selectedCandidacies.each_with_index do |candidacy, index|
