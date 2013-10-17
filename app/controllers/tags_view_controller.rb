@@ -60,15 +60,20 @@ class TagsViewController < UIViewController
     delegate.tagsViewController(self, didSelectTag:selectedTag)
   end
 
-def tableView(tableView, heightForRowAtIndexPath:indexPath)
+  def tableView(tableView, heightForRowAtIndexPath:indexPath)
     cellText = @election.tags[indexPath.row].name
     cellFont = UIFont.fontWithName("Helvetica", size:17)
-    labelSize = cellText.sizeWithFont(cellFont,
-      constrainedToSize:[280-20,500],
-      lineBreakMode:UILineBreakModeWordWrap)
-
-  labelSize.height + 25
-end
+    if Device.ios_version.to_f < 7
+      labelSize = cellText.sizeWithFont(cellFont,
+        constrainedToSize:[@table.frame.size.width - 55, 10000],
+        lineBreakMode:UILineBreakModeWordWrap)
+    else
+      labelSize = cellText.sizeWithFont(cellFont,
+        constrainedToSize:[@table.frame.size.width - 75, 10000],
+        lineBreakMode:UILineBreakModeWordWrap)
+    end
+    labelSize.height + 25
+  end
 
   def reloadData
     @table.reloadData
