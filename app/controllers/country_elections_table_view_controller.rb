@@ -1,5 +1,21 @@
 class CountryElectionsTableViewController < UITableViewController
-  attr_accessor :elections
+  attr_accessor :elections, :delegate
+
+  def viewDidLoad
+    super
+    # hide back button
+    self.navigationItem.hidesBackButton = true
+    # Set button on navigation bar
+    @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
+    @logoButton.frame = [[0,0],[32,32]]
+    @logoButton.setImage(UIImage.imageNamed("voxelogo.png"), forState:UIControlStateNormal)
+    @logoButton.addTarget(self, action:'logoButtonPressed', forControlEvents:UIControlEventTouchUpInside)
+    navigationItem.titleView = @logoButton
+  end
+
+  def logoButtonPressed
+    self.navigationController.popToRootViewControllerAnimated(true)
+  end
 
   def tableView(tableView, cellForRowAtIndexPath: indexPath)
     @reuseIdentifier ||= "CELL_IDENTIFIER"
@@ -16,8 +32,8 @@ class CountryElectionsTableViewController < UITableViewController
     @elections.length
   end
 
-  def tableView(tableView, didSelectRowAtIndexPath:indexPath)
-    tableView.deselectRowAtIndexPath(indexPath, animated: true)
+  def delegate=(delegate)
+    self.tableView.delegate = delegate
   end
 
 end
