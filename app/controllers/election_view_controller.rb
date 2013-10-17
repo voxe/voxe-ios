@@ -78,9 +78,9 @@ class ElectionViewController < UINavigationController
   end
 
   def propositionsViewController(propositionsViewController, didSelectElection:election)
-    self.election = election
     self.selectedCandidacies = nil
     self.selectedTag = nil
+    self.election = election
   end
 
   def tagsViewController(tagsViewController, didSelectTag:tag)
