@@ -5,7 +5,6 @@ class ElectionViewController < UINavigationController
   ELECTION_ID = '4f16fe2299c7a10001000012'
 
   def init
-    load_election(ELECTION_ID)
 
     # Candidacies view controller (left view)
     @candidaciesViewController = CandidaciesViewController.alloc.init

@@ -17,7 +17,6 @@ class PropositionsViewController < UIViewController
     @webView.delegate = self
 
     # Set button on navigation bar
-
     @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
     @logoButton.frame = [[0,0],[32,32]]
     @logoButton.setImage(UIImage.imageNamed("voxelogo.png"), forState:UIControlStateNormal)
@@ -29,13 +28,23 @@ class PropositionsViewController < UIViewController
     @backItem.style = UIBarButtonItemStyleBordered
   end
 
+  def spinner
+    if @spinner.nil?
+      @spinner = UIActivityIndicatorView.alloc.initWithActivityIndicatorStyle(UIActivityIndicatorViewStyleGray)
+      @spinner.hidesWhenStopped = true
+      navigationItem.rightBarButtonItem = UIBarButtonItem.alloc.initWithCustomView(@spinner)
+    end
+    @spinner
+  end
+
   # Interface buttons
 
   def logoButtonPressed
-    # check if propositions view controller is displayed
-    # if he is then display the countries table view
-    # if not then push to the root view controller (propositions view controller)
+    # disable the logo button and start spinning
     @logoButton.enabled = false
+    spinner.startAnimating
+
+    # fire up the request
     BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
       if response.ok?
 
@@ -50,8 +59,8 @@ class PropositionsViewController < UIViewController
         # make a list of countries
         @countries = []
         @elections.each { |election|
-          unless @countries.include?(election.country['name'])
-            @countries.push(election.country['name'])
+          unless @countries.any? {|country| country.name == election.country.name}
+            @countries.push(election.country)
           end
         }
 
@@ -62,6 +71,7 @@ class PropositionsViewController < UIViewController
         self.navigationController.pushViewController(@countriesVC, animated:true)
       end
       @logoButton.enabled = true
+      @spinner.stopAnimating
     end
   end
 
@@ -72,7 +82,7 @@ class PropositionsViewController < UIViewController
     if tableView == @countriesVC.tableView
       # make a list of elections that happen in the selected country
       @countryElections = @elections.select { |election|
-        election.country['name'] == @countries[indexPath.row]
+        election.country.name == @countries[indexPath.row].name
       }
       # create the country elections table view controller
       electionsVC = CountryElectionsTableViewController.alloc.init
