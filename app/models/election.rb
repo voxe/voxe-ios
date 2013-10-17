@@ -19,4 +19,9 @@ class Election
   def tags=(tags_attrs)
     @tags = tags_attrs.map { |attributes| Tags.new(attributes) }
   end
+
+  def country=(country_hsh={})
+    @country = Country.new(country_hsh)
+  end
+
 end

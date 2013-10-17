@@ -3,8 +3,6 @@ class CountryElectionsTableViewController < UITableViewController
 
   def viewDidLoad
     super
-    # hide back button
-    self.navigationItem.hidesBackButton = true
     # Set button on navigation bar
     @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
     @logoButton.frame = [[0,0],[32,32]]
