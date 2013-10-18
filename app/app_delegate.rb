@@ -7,6 +7,12 @@ class AppDelegate
     application.setStatusBarStyle(UIStatusBarStyleBlackOpaque)
 
     @window.makeKeyAndVisible
+
+    pageControl = UIPageControl.appearance
+    pageControl.pageIndicatorTintColor = UIColor.lightGrayColor
+    pageControl.currentPageIndicatorTintColor = UIColor.blackColor
+    pageControl.backgroundColor = UIColor.whiteColor
+
     true
   end
 end
