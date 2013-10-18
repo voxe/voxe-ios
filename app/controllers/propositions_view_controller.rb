@@ -26,6 +26,18 @@ class PropositionsViewController < UIViewController
     # Create back button
     @backItem = UIBarButtonItem.alloc.initWithBarButtonSystemItem(101, target:@webView, action:'goBack')
     @backItem.style = UIBarButtonItemStyleBordered
+
+    self.navigationController.pushViewController(self.helperVC, animated:false)
+    self.loadElections
+
+  end
+
+  def helperVC
+    if @helperVC.nil?
+      @helperVC = HelperViewController.alloc.init
+      @helperVC.delegate = self
+    end
+    @helperVC
   end
 
   def spinner
@@ -40,11 +52,45 @@ class PropositionsViewController < UIViewController
   # Interface buttons
 
   def logoButtonPressed
-    # disable the logo button and start spinning
+    # disable the logo button
     @logoButton.enabled = false
-    spinner.startAnimating
 
-    # fire up the request
+    if @elections.nil?
+      BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
+        if response.ok?
+
+          # make of list of Election objects
+          electionsFromJson = BW::JSON.parse(response.body.to_str)['response']['elections']
+          @elections = electionsFromJson.map {|attributes|
+            if attributes["published"] == true
+              Election.new(attributes)
+            end
+          }
+
+          # make a list of countries
+          @countries = []
+          @elections.each { |election|
+            unless @countries.any? {|country| country.name == election.country.name}
+              @countries.push(election.country)
+            end
+          }
+
+          # create the countries table view controller
+          @countriesVC = CountriesTableViewController.alloc.init
+          @countriesVC.delegate = self
+          @countriesVC.countries = @countries
+          self.pushCountriesVC
+        else
+          p 'couldnt fetch elections'
+        end
+      end
+    else
+      self.pushCountriesVC
+    end
+  end
+
+  def loadElections
+    self.helperVC.spinner.startAnimating
     BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
       if response.ok?
 
@@ -68,11 +114,23 @@ class PropositionsViewController < UIViewController
         @countriesVC = CountriesTableViewController.alloc.init
         @countriesVC.delegate = self
         @countriesVC.countries = @countries
-        self.navigationController.pushViewController(@countriesVC, animated:true)
+      else
+        p 'couldnt fetch elections'
       end
-      @logoButton.enabled = true
-      @spinner.stopAnimating
+    self.helperVC.spinner.stopAnimating
     end
+  end
+
+  def pushCountriesVC
+    self.navigationController.pushViewController(@countriesVC, animated:true)
+    @logoButton.enabled = true
+  end
+
+  # HelperViewController delegate
+
+  def helperViewControllerDismissed
+    self.navigationController.popToRootViewControllerAnimated(false)
+    self.logoButtonPressed
   end
 
   # UITableView delegate methods
