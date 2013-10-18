@@ -9,6 +9,11 @@ class PropositionsViewController < UIViewController
     @webView = subview(UIWebView, :webview)
   end
 
+  def viewWillAppear(animated)
+    super
+    self.viewDeckController.panningMode = IIViewDeckFullViewPanning
+  end
+
   def viewDidLoad
     super
     view.backgroundColor = '#E7ECEE'.to_color
@@ -27,29 +32,27 @@ class PropositionsViewController < UIViewController
     @backItem = UIBarButtonItem.alloc.initWithBarButtonSystemItem(101, target:@webView, action:'goBack')
     @backItem.style = UIBarButtonItemStyleBordered
 
-    self.navigationController.pushViewController(self.helperVC, animated:false)
-    self.loadElections
+    # Create help button
+    helpButton = UIButton.buttonWithType(UIButtonTypeInfoLight) 
+    helpButton.addTarget(self, action:'tutorialButtonPressed', forControlEvents:UIControlEventTouchUpInside)
+    self.navigationItem.rightBarButtonItem = UIBarButtonItem.alloc.initWithCustomView(helpButton)
 
+    self.loadElections
+    self.tutorialButtonPressed
   end
 
   def helperVC
-    if @helperVC.nil?
-      @helperVC = HelperViewController.alloc.init
-      @helperVC.delegate = self
-    end
-    @helperVC
-  end
-
-  def spinner
-    if @spinner.nil?
-      @spinner = UIActivityIndicatorView.alloc.initWithActivityIndicatorStyle(UIActivityIndicatorViewStyleGray)
-      @spinner.hidesWhenStopped = true
-      navigationItem.rightBarButtonItem = UIBarButtonItem.alloc.initWithCustomView(@spinner)
-    end
-    @spinner
+    helperVC = TutorialViewController.alloc.init
+    helperVC.delegate = self
+    helperVC
   end
 
   # Interface buttons
+
+  def tutorialButtonPressed
+    self.viewDeckController.panningMode = IIViewDeckNoPanning
+    self.navigationController.pushViewController(self.helperVC, animated:true)
+  end
 
   def logoButtonPressed
     # disable the logo button
@@ -90,7 +93,6 @@ class PropositionsViewController < UIViewController
   end
 
   def loadElections
-    self.helperVC.spinner.startAnimating
     BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
       if response.ok?
 
@@ -117,7 +119,6 @@ class PropositionsViewController < UIViewController
       else
         p 'couldnt fetch elections'
       end
-    self.helperVC.spinner.stopAnimating
     end
   end
 
@@ -126,9 +127,9 @@ class PropositionsViewController < UIViewController
     @logoButton.enabled = true
   end
 
-  # HelperViewController delegate
+  # TutorialViewController delegate
 
-  def helperViewControllerDismissed
+  def tutorialViewControllerDismissed
     self.navigationController.popToRootViewControllerAnimated(false)
     self.logoButtonPressed
   end
