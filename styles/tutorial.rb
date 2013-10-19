@@ -51,7 +51,6 @@ Teacup::Stylesheet.new(:tutorial) do
     :center_x,
     constrain_width(250),
     constrain(:top).equals(:superview, :top).plus(40),
-#    constrain_above(:centeredImage).minus(50),
   ]
 
   style :belowCenteredImage,

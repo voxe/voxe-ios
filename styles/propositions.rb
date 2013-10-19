@@ -8,4 +8,5 @@ Teacup::Stylesheet.new :propositions do
       :full_height,
       constrain_top(0)
     ]
+
 end
