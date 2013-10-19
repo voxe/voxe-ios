@@ -38,6 +38,19 @@ class PropositionsViewController < UIViewController
     helpButton.addTarget(self, action:'tutorialButtonPressed', forControlEvents:UIControlEventTouchUpInside)
     self.navigationItem.rightBarButtonItem = UIBarButtonItem.alloc.initWithCustomView(helpButton)
 
+    # Display help - temporary fix
+    offset = 45
+    if Device.ios_version.to_f < 7
+      offset = 0
+    end
+    @label = UILabel.alloc.initWithFrame([[10,offset],[300,100]])
+    @label.text = "Pour commencer, appuyez sur \n le bouton ci-dessus \n pour choisir une élection"
+    @label.font = UIFont.fontWithName("Helvetica", size:14)
+    @label.lineBreakMode = UILineBreakModeWordWrap
+    @label.numberOfLines = 0
+    @label.textAlignment = UITextAlignmentCenter
+    self.view.addSubview(@label)
+
     self.loadElections
     self.tutorialButtonPressed
   end
@@ -58,6 +71,7 @@ class PropositionsViewController < UIViewController
   def logoButtonPressed
     # disable the logo button
     @logoButton.enabled = false
+    @label.hidden = true
 
     if @elections.nil?
       BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
