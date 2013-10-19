@@ -11,6 +11,7 @@ class PropositionsViewController < UIViewController
 
   def viewWillAppear(animated)
     super
+    self.navigationController.navigationBarHidden = false
     self.viewDeckController.panningMode = IIViewDeckFullViewPanning
   end
 
@@ -151,7 +152,6 @@ class PropositionsViewController < UIViewController
     else
       self.navigationController.popToRootViewControllerAnimated(true)
       @delegate.propositionsViewController(self, didSelectElection:@countryElections[indexPath.row])
-      p 'name'
     end
   end
 

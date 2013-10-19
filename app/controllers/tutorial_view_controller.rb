@@ -1,18 +1,18 @@
 class TutorialViewController < UIViewController
   attr_accessor :delegate, :spinner, :pageController
 
-  #stylesheet :tutorial
-  #layout :root do
+  stylesheet :tutorial
+  layout :root do
+    @pageControl = subview(UIPageControl, :pagecontrol, numberOfPages:3, currentPage:0)
     #@label = subview(UILabel, :label, text: 'Appuyez sur le bouton ci-dessus pour commencer')
-  #end
+  end
 
   # UIViewController lifecycle
 
   def viewDidLoad
     super
-
-    # hide back button
-    self.navigationItem.hidesBackButton = true
+    # hide navigation bar
+    self.navigationController.navigationBarHidden = true
 
     # set button on navigation bar
     @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
@@ -25,11 +25,13 @@ class TutorialViewController < UIViewController
     @pageController = UIPageViewController.alloc.initWithTransitionStyle(UIPageViewControllerTransitionStyleScroll, navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal, options:nil)
     @pageController.dataSource = self
     @pageController.view.frame = self.view.bounds
-    @pageController.view.backgroundColor = 'gray'.to_color
+    @pageController.view.backgroundColor = 'white'.to_color
     @pageController.setViewControllers([self.tutorialViewControllers[0]], direction:UIPageViewControllerNavigationDirectionForward, animated:false, completion:nil)
-    self.addChildViewController(@pageController)
+    #self.addChildViewController(@pageController)
     self.view.addSubview(@pageController.view)
     @pageController.didMoveToParentViewController(self)
+
+    self.view.addSubview(@pageControl)
 
   end
 
@@ -52,8 +54,13 @@ class TutorialViewController < UIViewController
 
   def tutorialViewControllers
     if @tutorialViewControllers.nil?
-      @tutorialViewControllers = [TutorialPageOneVC.alloc.init,
-        TutorialPageTwoVC.alloc.init,TutorialPageThreeVC.alloc.init]
+      page1 = TutorialPageOneVC.alloc.init
+      page1.delegate = self
+      page2 = TutorialPageTwoVC.alloc.init
+      page2.delegate = self
+      page3 = TutorialPageThreeVC.alloc.init
+      page3.delegate = self
+      @tutorialViewControllers = [page1, page2, page3]
     end
     @tutorialViewControllers
   end
@@ -72,12 +79,8 @@ class TutorialViewController < UIViewController
     self.tutorialViewControllers[viewController.index+1]
   end
 
-  def presentationCountForPageViewController(pageViewController)
-    return 3
-  end
-
-  def presentationIndexForPageViewController(pageViewController)
-    return 0
+  def changePageControlToCurrentPage(index)
+    @pageControl.currentPage = index
   end
 
 end
