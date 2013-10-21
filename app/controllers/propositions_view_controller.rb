@@ -19,118 +19,140 @@ class PropositionsViewController < UIViewController
     super
     view.backgroundColor = '#E7ECEE'.to_color
 
-    # Set webview delegate
+    # set webview delegate
     @webView.delegate = self
 
-    # Set button on navigation bar
-    @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
-    @logoButton.frame = [[0,0],[32,32]]
-    @logoButton.setImage(UIImage.imageNamed("voxelogo.png"), forState:UIControlStateNormal)
-    @logoButton.addTarget(self, action:'logoButtonPressed', forControlEvents:UIControlEventTouchUpInside)
-    navigationItem.titleView = @logoButton
+    # add items to navigation bar
+    navigationItem.titleView = self.logoButton
+    navigationItem.rightBarButtonItem = self.helpItem
 
-    # Create back button
-    @backItem = UIBarButtonItem.alloc.initWithBarButtonSystemItem(101, target:@webView, action:'goBack')
-    @backItem.style = UIBarButtonItemStyleBordered
+    # display help label ('click button above to start')
+    self.view.addSubview(self.helpLabel)
 
-    # Create help button
-    helpButton = UIButton.buttonWithType(UIButtonTypeInfoLight) 
-    helpButton.addTarget(self, action:'tutorialButtonPressed', forControlEvents:UIControlEventTouchUpInside)
-    self.navigationItem.rightBarButtonItem = UIBarButtonItem.alloc.initWithCustomView(helpButton)
-
-    # Display help - temporary fix
-    offset = 45
-    if Device.ios_version.to_f < 7
-      offset = 0
-    end
-    @label = UILabel.alloc.initWithFrame([[10,offset],[300,100]])
-    @label.text = "Pour commencer, appuyez sur \n le bouton ci-dessus \n pour choisir une élection"
-    @label.font = UIFont.fontWithName("Helvetica", size:14)
-    @label.lineBreakMode = UILineBreakModeWordWrap
-    @label.numberOfLines = 0
-    @label.textAlignment = UITextAlignmentCenter
-    self.view.addSubview(@label)
-
+    # load elections
     self.loadElections
-    self.tutorialButtonPressed
+
+    # load tutorial if first launch
+    if App::Persistence['firstLaunch'].nil?
+      App::Persistence['firstLaunch'] = true
+      self.tutorialButtonPressed
+    end
   end
 
-  def helperVC
-    helperVC = TutorialViewController.alloc.init
-    helperVC.delegate = self
-    helperVC
+  # Instance variables
+
+  def logoButton
+    if @logoButton.nil?
+      @logoButton = UIButton.buttonWithType(UIButtonTypeCustom)
+      @logoButton.frame = [[0,0],[32,32]]
+      @logoButton.setImage(UIImage.imageNamed("voxelogo.png"), forState:UIControlStateNormal)
+      @logoButton.addTarget(self, action:'logoButtonPressed', forControlEvents:UIControlEventTouchUpInside)
+    end
+    @logoButton
+  end
+
+  def backItem
+    if @backItem.nil?
+      @backItem = UIBarButtonItem.alloc.initWithBarButtonSystemItem(101, target:@webView, action:'goBack')
+      @backItem.style = UIBarButtonItemStyleBordered
+    end
+    @backItemch
+  end
+
+  def helpItem
+    if @helpItem.nil?
+      helpButton = UIButton.buttonWithType(UIButtonTypeInfoLight) 
+      helpButton.addTarget(self, action:'tutorialButtonPressed', forControlEvents:UIControlEventTouchUpInside)
+      @helpItem = UIBarButtonItem.alloc.initWithCustomView(helpButton)
+    end
+    @helpItem
+  end
+
+  def helpLabel
+    if @helpLabel.nil?
+      offset = 45
+      if Device.ios_version.to_f < 7
+        offset = 0
+      end
+      @helpLabel = UILabel.alloc.initWithFrame([[10,offset],[300,100]])
+      @helpLabel.text = "Pour commencer, appuyez sur \n le bouton ci-dessus \n pour choisir une élection"
+      @helpLabel.font = UIFont.fontWithName("Helvetica", size:14)
+      @helpLabel.lineBreakMode = UILineBreakModeWordWrap
+      @helpLabel.numberOfLines = 0
+      @helpLabel.textAlignment = UITextAlignmentCenter
+    end
+    @helpLabel
+  end
+
+  def tutorialVC
+    tutorialVC = TutorialViewController.alloc.init
+    tutorialVC.delegate = self
+    tutorialVC
+  end
+
+  def countries
+    if @countries.nil?
+      @countries = []
+      @elections.each { |election|
+        unless @countries.any? {|country| country.name == election.country.name}
+          @countries << election.country
+        end
+      }
+    end
+    @countries
+  end
+
+  def countriesVC
+    if @countriesVC.nil?
+      @countriesVC = CountriesTableViewController.alloc.init
+      @countriesVC.delegate = self
+      @countriesVC.countries = self.countries
+    end
+    @countriesVC
   end
 
   # Interface buttons
 
   def tutorialButtonPressed
     self.viewDeckController.panningMode = IIViewDeckNoPanning
-    self.navigationController.pushViewController(self.helperVC, animated:true)
+    self.navigationController.pushViewController(self.tutorialVC, animated:true)
   end
 
   def logoButtonPressed
     # disable the logo button
-    @logoButton.enabled = false
-    @label.hidden = true
+    self.logoButton.enabled = false
+    self.helpLabel.hidden = true
 
-    if @elections.nil?
+    if !@elections.nil?
+      self.pushCountriesVC
+    else
       BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
         if response.ok?
-
           # make of list of Election objects
           electionsFromJson = BW::JSON.parse(response.body.to_str)['response']['elections']
           @elections = electionsFromJson.map {|attributes|
             if attributes["published"] == true
               Election.new(attributes)
             end
-          }
-
-          # make a list of countries
-          @countries = []
-          @elections.each { |election|
-            unless @countries.any? {|country| country.name == election.country.name}
-              @countries.push(election.country)
-            end
-          }
-
-          # create the countries table view controller
-          @countriesVC = CountriesTableViewController.alloc.init
-          @countriesVC.delegate = self
-          @countriesVC.countries = @countries
+          }.sort! { |a,b| b.date <=> a.date }
           self.pushCountriesVC
         else
           p 'couldnt fetch elections'
         end
       end
-    else
-      self.pushCountriesVC
     end
   end
 
   def loadElections
     BW::HTTP.get("http://voxe.org/api/v1/elections/search") do |response|
       if response.ok?
-
-        # make of list of Election objects
-        electionsFromJson = BW::JSON.parse(response.body.to_str)['response']['elections']
-        @elections = electionsFromJson.map {|attributes|
-          if attributes["published"] == true
-            Election.new(attributes)
-          end
-        }
-
-        # make a list of countries
-        @countries = []
-        @elections.each { |election|
-          unless @countries.any? {|country| country.name == election.country.name}
-            @countries.push(election.country)
-          end
-        }
-
-        # create the countries table view controller
-        @countriesVC = CountriesTableViewController.alloc.init
-        @countriesVC.delegate = self
-        @countriesVC.countries = @countries
+          # make of list of Election objects
+          electionsFromJson = BW::JSON.parse(response.body.to_str)['response']['elections']
+          @elections = electionsFromJson.map {|attributes|
+            if attributes["published"] == true
+              Election.new(attributes)
+            end
+          }.sort! { |a,b| b.date <=> a.date }
       else
         p 'couldnt fetch elections'
       end
@@ -138,8 +160,8 @@ class PropositionsViewController < UIViewController
   end
 
   def pushCountriesVC
-    self.navigationController.pushViewController(@countriesVC, animated:true)
-    @logoButton.enabled = true
+    self.navigationController.pushViewController(self.countriesVC, animated:true)
+    self.logoButton.enabled = true
   end
 
   # TutorialViewController delegate
@@ -149,14 +171,14 @@ class PropositionsViewController < UIViewController
     self.logoButtonPressed
   end
 
-  # UITableView delegate methods
+  # UITableView delegate
 
   def tableView(tableView, didSelectRowAtIndexPath:indexPath)
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
-    if tableView == @countriesVC.tableView
+    if tableView == self.countriesVC.tableView
       # make a list of elections that happen in the selected country
       @countryElections = @elections.select { |election|
-        election.country.name == @countries[indexPath.row].name
+        election.country.name == self.countries[indexPath.row].name
       }
       # create the country elections table view controller
       electionsVC = CountryElectionsTableViewController.alloc.init
@@ -169,14 +191,14 @@ class PropositionsViewController < UIViewController
     end
   end
 
-  # UIWebView methods
+  # UIWebView delegate
 
   def webViewDidFinishLoad(webView)
     MBProgressHUD.hideHUDForView(self.view, animated:true)
     if @resetBackButton
       @resetBackButton = false
     else
-      navigationItem.setLeftBarButtonItem(@backItem, animated:true)
+      navigationItem.setLeftBarButtonItem(self.backItem, animated:true)
     end
   end
 
