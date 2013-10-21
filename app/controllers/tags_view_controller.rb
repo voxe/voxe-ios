@@ -14,6 +14,7 @@ class TagsViewController < UIViewController
 
     @table.dataSource = self
     @table.delegate = self
+    self.title = 'Thèmes'
   end
 
   # UITableView methods
@@ -22,10 +23,25 @@ class TagsViewController < UIViewController
     @reuseIdentifier ||= "CELL_IDENTIFIER"
 
     cell = tableView.dequeueReusableCellWithIdentifier(@reuseIdentifier) || begin
-      UITableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
+      TagsTableViewCell.alloc.initWithStyle(UITableViewCellStyleDefault, reuseIdentifier:@reuseIdentifier)
     end
 
+    # Set the image
+    iconRequest = NSURLRequest.requestWithURL(NSURL.URLWithString(@election.tags[indexPath.row].iconURL))
+    cell.imageView.setImageWithURLRequest(iconRequest,
+      placeholderImage:nil,
+      success:lambda do |request, response, image|
+       cell.imageView.image = image
+       cell.setNeedsLayout
+     end,
+      failure:nil)
+
+    # Set the text
+    cell.textLabel.lineBreakMode = UILineBreakModeWordWrap
+    cell.textLabel.numberOfLines = 0
+    cell.textLabel.font = UIFont.fontWithName("Helvetica", size:17)
     cell.textLabel.text = @election.tags[indexPath.row].name
+
     cell
   end
 
@@ -42,6 +58,21 @@ class TagsViewController < UIViewController
     tableView.deselectRowAtIndexPath(indexPath, animated: true)
     selectedTag = @election.tags[indexPath.row]
     delegate.tagsViewController(self, didSelectTag:selectedTag)
+  end
+
+  def tableView(tableView, heightForRowAtIndexPath:indexPath)
+    cellText = @election.tags[indexPath.row].name
+    cellFont = UIFont.fontWithName("Helvetica", size:17)
+    if Device.ios_version.to_f < 7
+      labelSize = cellText.sizeWithFont(cellFont,
+        constrainedToSize:[@table.frame.size.width - 55, 10000],
+        lineBreakMode:UILineBreakModeWordWrap)
+    else
+      labelSize = cellText.sizeWithFont(cellFont,
+        constrainedToSize:[@table.frame.size.width - 75, 10000],
+        lineBreakMode:UILineBreakModeWordWrap)
+    end
+    labelSize.height + 25
   end
 
   def reloadData

@@ -5,19 +5,27 @@ class ElectionViewController < UINavigationController
   ELECTION_ID = '4f16fe2299c7a10001000012'
 
   def init
-    load_election(ELECTION_ID)
 
+    # Candidacies view controller (left view)
     @candidaciesViewController = CandidaciesViewController.alloc.init
     @candidaciesViewController.delegate = self
+    @candidaciesNavigationController = UINavigationController.alloc.initWithRootViewController(@candidaciesViewController)
+
+    # Propositions view controller (middle view with navigation controller)
     @propositionsViewController = PropositionsViewController.alloc.init
+    @propositionsViewController.delegate = self
+    @propositionsNavigationController = UINavigationController.alloc.initWithRootViewController(@propositionsViewController)
+
+    # Tags View Controller (right view)
     @tagsViewController = TagsViewController.alloc.init
     @tagsViewController.delegate = self
+    @tagsNavigationController = UINavigationController.alloc.initWithRootViewController(@tagsViewController)
 
     @deckViewController = IIViewDeckController.alloc.initWithCenterViewController(
-      @propositionsViewController,
-      leftViewController: @candidaciesViewController,
-      rightViewController: @tagsViewController
-    )
+      @propositionsNavigationController,
+      leftViewController: @candidaciesNavigationController,
+      rightViewController: @tagsNavigationController
+      )
 
     return self
   end
@@ -30,6 +38,10 @@ class ElectionViewController < UINavigationController
   def selectedCandidacies=(selectedCandidacies)
     super
     @propositionsViewController.selectedCandidacies = selectedCandidacies
+  end
+
+  def selectedCandidacies
+    @selectedCandidacies ||= []
   end
 
   def election=(election)
@@ -54,17 +66,29 @@ class ElectionViewController < UINavigationController
 
   def candidaciesViewController(candidaciesViewController, didSelectCandidates:candidacies)
     self.selectedCandidacies = candidacies
-    if @selectedTag == nil && candidacies.length == 2
-      @deckViewController.toggleRightViewAnimated true
-    elsif @selectedTag != nil && candidacies.length > 1
-      @propositionsViewController.refreshWebView
+    if candidacies.length == 2
+      if @selectedTag == nil
+        @deckViewController.toggleRightViewAnimated true
+      else
+        @propositionsViewController.refreshWebView
+        @deckViewController.closeLeftView
+      end
     end
+  end
+
+  def propositionsViewController(propositionsViewController, didSelectElection:election)
+    self.selectedCandidacies = nil
+    self.selectedTag = nil
+    self.election = election
   end
 
   def tagsViewController(tagsViewController, didSelectTag:tag)
     self.selectedTag = tag
-    @propositionsViewController.refreshWebView
+    @propositionsViewController.refreshWebView unless self.selectedCandidacies.length < 2
     @deckViewController.closeRightView
+    if self.selectedCandidacies.length < 2
+      @deckViewController.toggleLeftViewAnimated true
+    end
   end
 
 end

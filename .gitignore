@@ -11,5 +11,5 @@ nbproject
 *.swo
 ~
 .eprj
-
+.dat*
 !.gitkeep

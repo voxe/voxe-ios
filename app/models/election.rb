@@ -1,5 +1,5 @@
 class Election
-  PROPERTIES = [:id, :name, :candidacies, :tags]
+  PROPERTIES = [:id, :name, :candidacies, :tags, :published, :country, :date]
   PROPERTIES.each { |prop|
     attr_accessor prop
   }
@@ -19,4 +19,9 @@ class Election
   def tags=(tags_attrs)
     @tags = tags_attrs.map { |attributes| Tags.new(attributes) }
   end
+
+  def country=(country_hsh={})
+    @country = Country.new(country_hsh)
+  end
+
 end
