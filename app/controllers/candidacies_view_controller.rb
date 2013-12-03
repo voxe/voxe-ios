@@ -22,6 +22,7 @@ class CandidaciesViewController < UIViewController
 
     @table.dataSource = self
     @table.delegate = self
+    self.title = 'Candidats'
   end
 
   # UITableView methods
@@ -45,6 +46,7 @@ class CandidaciesViewController < UIViewController
 
     # Set the text
     cell.textLabel.text = @election.candidacies[indexPath.row].name
+    cell.textLabel.font = UIFont.fontWithName("Helvetica", size:17)
 
     # Add checkmark if needed
     if selectedCandidacies.include? @election.candidacies[indexPath.row]
@@ -67,17 +69,18 @@ class CandidaciesViewController < UIViewController
     candidacy = @election.candidacies[indexPath.row]
     if @selectedCandidacies.include? candidacy
       @selectedCandidacies.delete candidacy
-    else
+    elsif @selectedCandidacies.length != 2
       @selectedCandidacies << candidacy
+      # Send the selected candidacies to the ElectionViewController
+      delegate.candidaciesViewController(self, didSelectCandidates:@selectedCandidacies)
     end
     # Reload the row to make the checkmark appear of disappear
     @table.reloadRowsAtIndexPaths([*indexPath], withRowAnimation:UITableViewRowAnimationNone)
-    # Send the selected candidacies to the ElectionViewController
-    delegate.candidaciesViewController(self, didSelectCandidates:@selectedCandidacies)
   end
 
   # This function is called by the ElectionViewController upon reception of the data
   def reloadData
     @table.reloadData
+    @selectedCandidacies = nil
   end
 end
